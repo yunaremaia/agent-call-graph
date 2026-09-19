@@ -1,0 +1,7 @@
+{"type": "user_input", "timestamp": 1000.0, "event_id": "ev-001"}
+{"type": "tool_call", "tool_name": "bash", "tool_input": {"command": "ls"}, "timestamp": 1001.0, "event_id": "ev-002", "turn_id": 1}
+{"type": "tool_result", "tool_output": {"output": "README.md"}, "tool_call_id": "ev-002", "timestamp": 1002.0, "event_id": "ev-003"}
+{"type": "tool_call", "tool_name": "bash", "tool_input": {"command": "ls"}, "timestamp": 1003.0, "event_id": "ev-004", "turn_id": 1}
+{"type": "tool_result", "tool_output": {"output": "README.md"}, "tool_call_id": "ev-004", "timestamp": 1004.0, "event_id": "ev-005"}
+{"type": "tool_call", "tool_name": "bash", "tool_input": {"command": "ls"}, "timestamp": 1005.0, "event_id": "ev-006", "turn_id": 2}
+{"type": "tool_result", "tool_output": {"output": "README.md"}, "tool_call_id": "ev-006", "timestamp": 1006.0, "event_id": "ev-007"}

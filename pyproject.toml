@@ -1,0 +1,56 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agent-call-graph"
+version = "0.1.0"
+description = "Static analysis of AI agent session logs — detect wasteful tool call patterns, circular reasoning, and budget anomalies."
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.11"
+authors = [
+    {name = "Yunare Maia", email = "yunare@gmail.com"}
+]
+keywords = ["ai-agent", "static-analysis", "tool-call", "session-log", "optimization"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Quality Assurance",
+]
+dependencies = [
+    "click>=8.1",
+    "networkx>=3.0",
+    "pydantic>=2.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "ruff>=0.4",
+]
+
+[project.scripts]
+agent-call-graph = "agentcallgraph.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/yunaremaia/agent-call-graph"
+Issues = "https://github.com/yunaremaia/agent-call-graph/issues"
+
+[tool.setuptools.packages.find]
+include = ["agentcallgraph*"]
+exclude = ["tests*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v --tb=short"
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
