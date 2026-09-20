@@ -2,14 +2,13 @@
 
 from __future__ import annotations
 
-from pathlib import Path
-
 import click
 
+from agentcallgraph.detectors.budget import find_budget_anomalies
+from agentcallgraph.detectors.circular import find_circular_calls
+from agentcallgraph.detectors.redundant import find_redundant_calls
 from agentcallgraph.parsers.generic import parse_generic_jsonl
 from agentcallgraph.parsers.hermes import parse_hermes_session
-from agentcallgraph.detectors.redundant import find_redundant_calls
-from agentcallgraph.detectors.budget import find_budget_anomalies
 
 
 @click.command()
@@ -22,10 +21,24 @@ from agentcallgraph.detectors.budget import find_budget_anomalies
 )
 @click.option(
     "--source",
-    type=click.Choice(["auto", "hermes", "claude-code", "codex", "opencode", "generic"], case_sensitive=False),
+    type=click.Choice(
+        ["auto", "hermes", "claude-code", "codex", "opencode", "generic"], case_sensitive=False
+    ),
     default="auto",
 )
 @click.option("--threshold", type=float, default=3.0, help="Budget anomaly sigma threshold")
+@click.option(
+    "--loop-window",
+    type=int,
+    default=10,
+    help="Number of recent tool calls to analyze for loops",
+)
+@click.option(
+    "--loop-threshold",
+    type=int,
+    default=3,
+    help="Minimum number of repetitions to report",
+)
 @click.option("--fail-on-findings/--no-fail-on-findings", is_flag=True, default=False)
 @click.version_option()
 def main(
@@ -34,6 +47,8 @@ def main(
     source: str,
     threshold: float,
     fail_on_findings: bool,
+    loop_window: int,
+    loop_threshold: int,
 ):
     """Analyze an AI agent session log for wasteful tool call patterns.
 
@@ -44,6 +59,9 @@ def main(
     findings = []
     findings.extend(find_redundant_calls(session))
     findings.extend(find_budget_anomalies(session, sigma_threshold=threshold))
+    findings.extend(
+        find_circular_calls(session, loop_window=loop_window, loop_threshold=loop_threshold)
+    )
 
     if output_format == "json":
         import json
