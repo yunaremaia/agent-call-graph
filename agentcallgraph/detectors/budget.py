@@ -3,8 +3,6 @@
 from __future__ import annotations
 
 import statistics
-from dataclasses import dataclass
-from typing import Any
 
 from agentcallgraph.detectors.redundant import Finding
 from agentcallgraph.graph.types import Event, Session

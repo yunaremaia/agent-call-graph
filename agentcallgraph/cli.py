@@ -104,7 +104,7 @@ def _parse_session(path: str, source: str):
         if p.suffix in (".db", ".sqlite", ".sqlite3") or "hermes" in p.name.lower():
             try:
                 return parse_hermes_session(path)
-            except Exception:
+            except (ValueError, OSError):
                 pass
         return parse_generic_jsonl(path)
 
