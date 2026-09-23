@@ -56,7 +56,7 @@ def _dict_to_event(raw: dict[str, Any], line_num: int) -> Event | None:
         from datetime import datetime
 
         try:
-            ts = datetime.fromisoformat(ts.replace("Z", "+00:00")).timestamp()
+            ts = datetime.fromisoformat(ts).timestamp()
         except ValueError:
             ts = 0.0
 

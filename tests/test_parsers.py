@@ -4,10 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pytest
-
 from agentcallgraph.parsers.generic import parse_generic_jsonl
-from agentcallgraph.graph.types import EventType
 
 
 def test_generic_parser_redundant_ls():

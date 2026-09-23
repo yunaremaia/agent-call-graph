@@ -8,7 +8,6 @@ from pathlib import Path
 from typing import Any
 
 from agentcallgraph.graph.types import Event, EventType, Session
-from agentcallgraph.parsers.generic import parse_generic_jsonl
 
 
 def parse_hermes_session(path: str | Path) -> Session:
