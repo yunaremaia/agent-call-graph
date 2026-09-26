@@ -160,3 +160,7 @@ MIT — see [LICENSE](LICENSE)
 ## Built by
 
 [Yunare Maia](https://github.com/yunaremaia) — the agentic infrastructure behind [driftcheck](https://github.com/yunaremaia/driftcheck), [aipr](https://github.com/yunaremaia/aipr), [depscan](https://github.com/yunaremaia/depscan), and friends.
+
+# agent-call-graph
+
+![CI](https://github.com/yunaremaia/agent-call-graph/actions/workflows/ci.yml/badge.svg)
