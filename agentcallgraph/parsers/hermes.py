@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from agentcallgraph.graph.types import Event, EventType, Session
+from agentcallgraph.parsers.generic import parse_generic_jsonl
 
 
 def parse_hermes_session(path: str | Path) -> Session:
@@ -15,8 +16,6 @@ def parse_hermes_session(path: str | Path) -> Session:
     path = Path(path)
 
     if path.suffix == ".jsonl":
-        from agentcallgraph.parsers.generic import parse_generic_jsonl
-
         session = parse_generic_jsonl(path)
         session.source_format = "hermes_jsonl"
         return session
