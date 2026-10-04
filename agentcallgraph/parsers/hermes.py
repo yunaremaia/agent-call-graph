@@ -23,13 +23,18 @@ def parse_hermes_session(path: str | Path) -> Session:
     if path.suffix in (".db", ".sqlite", ".sqlite3"):
         return _parse_hermes_sqlite(path)
 
-    # Try JSON first, then SQLite
-    try:
-        with path.open() as f:
-            json.load(f)
-        return parse_generic_jsonl(path)
-    except (json.JSONDecodeError, UnicodeDecodeError):
+    # Unknown suffix: route on the file's actual signature rather than trying to
+    # json.load() it. That probe failed two ways on real inputs: it raised
+    # "Extra data" on multi-line JSONL (issue #29) and, worse, sent a valid
+    # text log into the SQLite parser, which then reported an empty session for a
+    # file full of events. The SQLite header is the one unambiguous marker, and
+    # it is 16 bytes at offset 0.
+    with path.open("rb") as f:
+        is_sqlite = f.read(16) == b"SQLite format 3\x00"
+
+    if is_sqlite:
         return _parse_hermes_sqlite(path)
+    return parse_generic_jsonl(path)
 
 
 def _parse_hermes_sqlite(path: Path) -> Session:
@@ -84,8 +89,14 @@ def _parse_hermes_sqlite(path: Path) -> Session:
                         timestamp=float(row["timestamp"] or 0),
                     )
                 )
-    except sqlite3.OperationalError:
-        # Fallback: empty session
+    except sqlite3.DatabaseError:
+        # Not a usable SQLite database at all -- a text session log that reached
+        # this branch through a hermes-named path with no .jsonl suffix. The
+        # broader DatabaseError is required here: "file is not a database" is
+        # raised as DatabaseError itself, while OperationalError is the
+        # *subclass* covering only "no such table"-style failures, so catching
+        # the narrow one let the common case escape as an unhandled crash
+        # (issue #29). Fallback: empty session.
         pass
     finally:
         conn.close()
