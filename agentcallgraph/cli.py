@@ -88,7 +88,7 @@ def main(
         _render_text(session, findings)
 
     if fail_on_findings and findings:
-        raise click.Exit(1)
+        raise SystemExit(1)
 
 
 def _parse_session(path: str, source: str):
