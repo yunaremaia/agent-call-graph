@@ -1,0 +1,7 @@
+{"type": "user_input", "timestamp": 2000.0, "event_id": "ev-001"}
+{"type": "tool_call", "tool_name": "bash", "tool_input": {"command": "git status"}, "timestamp": 2001.0, "event_id": "ev-002", "turn_id": 1}
+{"type": "tool_result", "tool_output": {"output": "clean"}, "tool_call_id": "ev-002", "timestamp": 2002.0, "event_id": "ev-003"}
+{"type": "tool_call", "tool_name": "read_file", "tool_input": {"path": "src/main.py"}, "timestamp": 2003.0, "event_id": "ev-004", "turn_id": 1}
+{"type": "tool_result", "tool_output": {"output": "entry point"}, "tool_call_id": "ev-004", "timestamp": 2004.0, "event_id": "ev-005"}
+{"type": "tool_call", "tool_name": "grep", "tool_input": {"pattern": "TODO"}, "timestamp": 2005.0, "event_id": "ev-006", "turn_id": 1}
+{"type": "tool_result", "tool_output": {"output": "no matches"}, "tool_call_id": "ev-006", "timestamp": 2006.0, "event_id": "ev-007"}
