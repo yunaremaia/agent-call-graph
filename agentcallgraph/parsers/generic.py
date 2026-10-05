@@ -21,7 +21,13 @@ def parse_generic_jsonl(path: str | Path) -> Session:
     events: list[Event] = []
     path = Path(path)
 
-    with path.open() as f:
+    # utf-8-sig consumes a BOM as an encoding signature; without it the BOM is
+    # read as the first byte of line 1, which json.loads rejects, and the
+    # `except json.JSONDecodeError` below then drops that event as if the line
+    # were corrupt (issue #34). errors="replace" keeps one undecodable byte
+    # from killing the whole file -- the damaged line fails json.loads on its
+    # own and is skipped like any other bad line.
+    with path.open(encoding="utf-8-sig", errors="replace") as f:
         for line_num, line in enumerate(f, 1):
             line = line.strip()
             if not line:
@@ -29,6 +35,12 @@ def parse_generic_jsonl(path: str | Path) -> Session:
             try:
                 raw = json.loads(line)
             except json.JSONDecodeError:
+                continue
+
+            # Valid JSON is not necessarily an object: a single-line array
+            # export, a `null` flush or a bare scalar all land here, and
+            # _infer_type would raise AttributeError on the whole file (issue #20).
+            if not isinstance(raw, dict):
                 continue
 
             event = _dict_to_event(raw, line_num)
@@ -60,15 +72,28 @@ def _dict_to_event(raw: dict[str, Any], line_num: int) -> Event | None:
         except ValueError:
             ts = 0.0
 
+    try:
+        ts = float(ts)
+    except (TypeError, ValueError):
+        # JSON null, or an object/array where a number belongs: exactly as
+        # unparseable as a truncated line, so drop the value, not the event
+        # (issue #19).
+        ts = 0.0
+
     tool_name = raw.get("tool_name")
     tool_input = raw.get("tool_input")
     tool_output = raw.get("tool_output")
     token_usage = raw.get("token_usage")
+    # Every consumer assumes a usage mapping -- Session.total_tokens, the budget
+    # detector and the cost estimate all call .get() on it -- so normalise the
+    # one field here instead of guarding each reader (issue #33).
+    if not isinstance(token_usage, dict):
+        token_usage = None
 
     return Event(
         event_id=raw.get("event_id", raw.get("tool_call_id", f"ev-{line_num}")),
         event_type=event_type,
-        timestamp=float(ts),
+        timestamp=ts,
         tool_name=tool_name,
         tool_input=tool_input,
         tool_output=tool_output,
