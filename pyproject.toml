@@ -49,6 +49,17 @@ exclude = ["tests*"]
 testpaths = ["tests"]
 addopts = "-v --tb=short"
 
+[tool.coverage.report]
+# Baseline: 69.63% measured on the full suite (243/349 statements, python 3.14).
+# floor(measured) on purpose — do NOT move this to the workflow's
+# --cov-fail-under and do NOT "round" it up. Two comparisons exist:
+#   * pytest-cov >= 6 exit path: coverage's rounded should_fail_under,
+#     round(total, precision) < fail_under  -> bites below 68.5%
+#   * older pytest-cov exit path: unrounded total < fail_under -> bites below 69%
+# 69 passes and bites under both; 70 is 0.13pp under the measured value and
+# breaks CI the first time a statement count shifts on another Python.
+fail_under = 69
+
 [tool.ruff]
 target-version = "py311"
 line-length = 100

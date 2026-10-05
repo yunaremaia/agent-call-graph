@@ -23,6 +23,13 @@ Open an issue at [GitHub Issues](https://github.com/yunaremaia/agent-call-graph/
 2. Open a PR with a clear description of changes
 3. Reference any related issue numbers
 
+CI runs the full suite with `pytest --cov=agentcallgraph` and enforces a
+coverage floor (`fail_under` in `pyproject.toml`), so a PR that drops coverage
+below it fails even when every test passes. Running a single file with `--cov`
+measures a fraction of the package and trips the same gate — use `--no-cov` for
+partial runs. Raise the floor only when the suite genuinely got more covered;
+never lower it to make CI green.
+
 ## Code Style
 
 Follow existing code style. Run linters/formatters if the project has them.
