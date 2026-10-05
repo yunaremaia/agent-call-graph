@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import math
+from typing import Any
+
 import click
 
 from agentcallgraph.detectors.budget import find_budget_anomalies
@@ -83,12 +86,32 @@ def main(
                 for f in findings
             ],
         }
-        click.echo(json.dumps(result, indent=2, default=str))
+        click.echo(json.dumps(_json_safe(result), indent=2, default=str, allow_nan=False))
     else:
         _render_text(session, findings)
 
     if fail_on_findings and findings:
         raise SystemExit(1)
+
+
+def _json_safe(value: Any) -> Any:
+    """Recursively map non-finite floats to ``None``.
+
+    RFC 8259 defines no literal for NaN or +/-Infinity, so ``json.dumps``
+    serializes them as bare tokens that every strict parser rejects -- which
+    discards the whole report, not just the one bad field. ``null`` is valid
+    JSON, keeps every key present (the schema shape stays stable for consumers)
+    and reads unambiguously as "no value", unlike 0, which would pass for a real
+    measurement of zero. ``allow_nan=False`` at the call site then turns any
+    future leak into a loud failure instead of silent corruption.
+    """
+    if isinstance(value, float):
+        return value if math.isfinite(value) else None
+    if isinstance(value, dict):
+        return {k: _json_safe(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_json_safe(v) for v in value]
+    return value
 
 
 def _parse_session(path: str, source: str):
@@ -113,7 +136,10 @@ def _render_text(session, findings):
     click.echo(f"Session: {session.session_id}")
     click.echo(f"Format: {session.source_format}")
     click.echo(f"Events: {len(session.events)} ({len(session.tool_calls)} tool calls)")
-    click.echo(f"Duration: {session.duration_seconds:.1f}s")
+    duration = session.duration_seconds
+    # A non-finite timestamp must not print as "nans"/"infs" -- the key stays,
+    # the value reads as absent (issue #32).
+    click.echo(f"Duration: {duration:.1f}s" if math.isfinite(duration) else "Duration: unknown")
     click.echo(f"Total tokens: {session.total_tokens}")
     click.echo("")
 
@@ -127,7 +153,9 @@ def _render_text(session, findings):
         click.echo(f"  {severity_icon} [{f.severity.upper()}] {f.type}")
         click.echo(f"     {f.message}")
         if f.details:
-            click.echo(f"     Details: {f.details}")
+            # Same non-finite guard as the JSON path: a dict repr would print a
+            # bare `nan`/`inf` here just as json.dumps would (issue #32).
+            click.echo(f"     Details: {_json_safe(f.details)}")
         click.echo("")
 
 
