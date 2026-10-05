@@ -26,16 +26,31 @@ def find_circular_calls(
     tool_calls = session.tool_calls[-loop_window:]
 
     path_map: dict[str, str] = {}
-    signatures = [
-        _call_signature(event, path_map)
-        for event in tool_calls
+    # A call with no tool_name has no signature, and comparing None against None
+    # made every nameless call match its neighbour -- so any two or more of them
+    # were reported as a repeated sequence the agent never ran (issue #21). Keep
+    # the original position so the reported indices still index tool_calls.
+    indexed = [
+        (position, signature)
+        for position, signature in enumerate(
+            _call_signature(event, path_map) for event in tool_calls
+        )
+        if signature is not None
     ]
+    signatures = [signature for _, signature in indexed]
 
     findings = []
     n = len(signatures)
+    # Index of the first call not already covered by a reported loop. A repeated
+    # sequence is periodic, so every rotation of it (and every longer slice of
+    # it) names the same physical calls: reporting each start position turned one
+    # loop into a quadratic pile of duplicates of itself (issue #23).
+    covered_until = 0
 
     for pattern_length in range(2, min(5, n // loop_threshold) + 1):
         for start in range(n - pattern_length + 1):
+            if start < covered_until:
+                continue
             pattern = signatures[start : start + pattern_length]
 
             repetitions = 1
@@ -62,11 +77,12 @@ def find_circular_calls(
                     details={
                         "loop_sequence": pattern,
                         "repetitions": repetitions,
-                        "start_index": start,
-                        "end_index": next_start - 1,
+                        "start_index": indexed[start][0],
+                        "end_index": indexed[next_start - 1][0],
                     },
                 )
             )
+            covered_until = next_start
 
     return findings
 
