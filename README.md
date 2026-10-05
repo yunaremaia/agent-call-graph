@@ -79,6 +79,14 @@ agent-call-graph sessions.db --source hermes
 - **Generic JSONL** — one JSON object per line; any of `tool_name`, `tool_input`, `tool_output`, `timestamp`, `turn_id`, `token_usage`. Unrecognized lines are skipped.
 - **Hermes session store** — a SQLite session database with a `messages` table (`role`, `content`, `tool_calls`, `tool_call_id`, `timestamp`), or a JSONL export.
 
+Separate tool-result records link to a call's `event_id` through `tool_call_id`,
+or an explicit `parent_event_id` when provided. Inline `tool_output` values on
+calls are also supported. The redundant-call detector reports `warning` for
+identical results only when every repeated call has unambiguous result data.
+Missing, partial, or conflicting result data produces an informational finding
+without claiming the results were identical; distinct known results are still
+reported as different. Duplicate call IDs cannot share linked result evidence.
+
 `--source` also accepts `claude-code`, `codex` and `opencode`, but those parsers are not implemented yet: today they fall back to the generic JSONL parser. Point the tool at a log in one of those formats only after confirming the generic parser reads it correctly.
 
 ### Output formats

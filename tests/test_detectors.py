@@ -50,31 +50,12 @@ def test_redundant_detector_no_duplicates():
 
 
 def test_redundant_detector_different_outputs():
-    session = Session(
-        session_id="diff",
-        source_format="test",
-        events=[
-            Event(
-                event_id="a",
-                event_type=EventType.TOOL_CALL,
-                timestamp=1.0,
-                tool_name="bash",
-                tool_input={"command": "cat file.txt"},
-                tool_output={"output": "hello"},
-            ),
-            Event(
-                event_id="b",
-                event_type=EventType.TOOL_CALL,
-                timestamp=2.0,
-                tool_name="bash",
-                tool_input={"command": "cat file.txt"},
-                tool_output={"output": "world"},
-            ),
-        ],
-    )
+    fixture = Path(__file__).parent / "fixtures" / "different_results.jsonl"
+    session = parse_generic_jsonl(fixture)
     findings = find_redundant_calls(session)
     assert len(findings) == 1
     assert findings[0].severity == "info"  # same args but different outputs
+    assert "different results" in findings[0].message
 
 
 def test_budget_anomaly_normal():
