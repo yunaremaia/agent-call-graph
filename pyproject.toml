@@ -50,7 +50,7 @@ testpaths = ["tests"]
 addopts = "-v --tb=short"
 
 [tool.coverage.report]
-# Baseline: 69.63% measured on the full suite (243/349 statements, python 3.14).
+# Baseline: 79.78% measured on the full suite (296/371 statements, python 3.14).
 # floor(measured) on purpose — do NOT move this to the workflow's
 # --cov-fail-under and do NOT "round" it up. Two comparisons exist:
 #   * pytest-cov >= 6 exit path: coverage's rounded should_fail_under,

@@ -20,5 +20,10 @@ jobs:
         run: pip install -e ".[dev]"
       - name: Run tests
         run: pytest --cov=agentcallgraph --cov-report=xml
+      # One upload per commit: the matrix runs 3 times, so publishing all three
+      # would merge three overlapping reports into one commit's history.
+      - name: Upload coverage
+        if: matrix.python-version == '3.11'
+        uses: codecov/codecov-action@v5
       - name: Lint
         run: ruff check agentcallgraph tests
