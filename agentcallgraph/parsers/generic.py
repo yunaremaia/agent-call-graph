@@ -90,6 +90,10 @@ def _dict_to_event(raw: dict[str, Any], line_num: int) -> Event | None:
     if not isinstance(token_usage, dict):
         token_usage = None
 
+    parent_event_id = raw.get("parent_event_id")
+    if event_type == EventType.TOOL_RESULT and parent_event_id is None:
+        parent_event_id = raw.get("tool_call_id")
+
     return Event(
         event_id=raw.get("event_id", raw.get("tool_call_id", f"ev-{line_num}")),
         event_type=event_type,
@@ -98,7 +102,7 @@ def _dict_to_event(raw: dict[str, Any], line_num: int) -> Event | None:
         tool_input=tool_input,
         tool_output=tool_output,
         token_usage=token_usage,
-        parent_event_id=raw.get("parent_event_id"),
+        parent_event_id=parent_event_id,
         turn_id=raw.get("turn_id"),
         metadata=raw.get("metadata", {}),
     )

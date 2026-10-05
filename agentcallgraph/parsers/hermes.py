@@ -71,6 +71,7 @@ def _parse_hermes_sqlite(path: Path) -> Session:
                         event_type=EventType.TOOL_RESULT,
                         timestamp=float(row["timestamp"] or 0),
                         tool_output={"content": row["content"]},
+                        parent_event_id=row["tool_call_id"],
                     )
                 )
             elif role == "assistant":

@@ -1,0 +1,6 @@
+{"type": "tool_call", "event_id": "call-a", "tool_name": "read_file", "tool_input": {"path": "file.txt"}, "timestamp": 1}
+{"type": "tool_result", "event_id": "result-a", "tool_call_id": "call-a", "tool_output": {"output": "first version"}, "timestamp": 2}
+{"type": "tool_call", "event_id": "call-b", "tool_name": "read_file", "tool_input": {"path": "file.txt"}, "timestamp": 3}
+{"type": "tool_result", "event_id": "result-b", "tool_call_id": "call-b", "tool_output": {"output": "second version"}, "timestamp": 4}
+{"type": "tool_call", "event_id": "call-c", "tool_name": "read_file", "tool_input": {"path": "file.txt"}, "timestamp": 5}
+{"type": "tool_result", "event_id": "result-c", "tool_call_id": "call-c", "tool_output": {"output": "third version"}, "timestamp": 6}
