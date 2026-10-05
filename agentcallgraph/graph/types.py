@@ -15,6 +15,29 @@ class EventType(str, Enum):
     SYSTEM = "system"
 
 
+#: Fields that add up to a total when a log does not pre-compute one.
+_SPLIT_TOKEN_KEYS = (
+    "input_tokens",
+    "output_tokens",
+    "cache_read_input_tokens",
+    "cache_creation_input_tokens",
+)
+
+
+def usage_tokens(usage: dict[str, Any] | None) -> int:
+    """Total tokens in one usage record, whatever key names the log format uses.
+
+    A pre-computed ``total_tokens`` wins when present. Otherwise the split
+    fields are summed -- those are the ones the generic parser documents and the
+    ones exporters actually write, so reading ``total_tokens`` alone reported 0
+    for every real session log (issue #15).
+    """
+    if not isinstance(usage, dict):
+        return 0
+    keys = ("total_tokens",) if "total_tokens" in usage else _SPLIT_TOKEN_KEYS
+    return sum(v for v in (usage.get(k, 0) for k in keys) if isinstance(v, (int, float)))
+
+
 @dataclass
 class Event:
     """A single event in an agent session."""
@@ -63,8 +86,4 @@ class Session:
 
     @property
     def total_tokens(self) -> int:
-        total = 0
-        for e in self.events:
-            if e.token_usage:
-                total += e.token_usage.get("total_tokens", 0)
-        return total
+        return sum(usage_tokens(e.token_usage) for e in self.events)
