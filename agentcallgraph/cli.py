@@ -119,6 +119,8 @@ def _parse_session(path: str, source: str):
         return parse_hermes_session(path)
     elif source == "generic":
         return parse_generic_jsonl(path)
+    elif source in ("claude-code", "codex", "opencode"):
+        raise SystemExit(f"error: --source {source} is not implemented yet; use auto, hermes, or generic")
     else:
         # Auto-detect: try hermes first, fallback to generic
         from pathlib import Path as _Path
