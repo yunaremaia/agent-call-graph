@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import uuid
 from pathlib import Path
 from typing import Any
 
@@ -48,7 +47,7 @@ def parse_generic_jsonl(path: str | Path) -> Session:
                 events.append(event)
 
     return Session(
-        session_id=path.stem + "-" + str(uuid.uuid4())[:8],
+        session_id=path.stem,
         source_format="generic_jsonl",
         events=events,
         metadata={"source_file": str(path)},
