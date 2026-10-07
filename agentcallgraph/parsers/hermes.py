@@ -90,14 +90,21 @@ def _parse_hermes_sqlite(path: Path) -> Session:
                         timestamp=float(row["timestamp"] or 0),
                     )
                 )
+    except sqlite3.OperationalError as e:
+        # "no such table: messages" -- the file is a valid SQLite DB but has no
+        # messages table. This is NOT a clean session; it is an unparseable one.
+        # Returning an empty Session here caused the CLI to report
+        # "No findings — session looks clean" with exit 0 (issue #18).
+        if "no such table" in str(e).lower():
+            raise ValueError(
+                f"SQLite file {path} has no 'messages' table -- not a Hermes session store"
+            ) from e
+        # Other OperationalErrors (locked, corrupt, etc.) -- re-raise as-is
+        raise
     except sqlite3.DatabaseError:
-        # Not a usable SQLite database at all -- a text session log that reached
-        # this branch through a hermes-named path with no .jsonl suffix. The
-        # broader DatabaseError is required here: "file is not a database" is
-        # raised as DatabaseError itself, while OperationalError is the
-        # *subclass* covering only "no such table"-style failures, so catching
-        # the narrow one let the common case escape as an unhandled crash
-        # (issue #29). Fallback: empty session.
+        # "file is not a database" -- not a SQLite file at all. This can happen
+        # when a text session log reaches this branch through a hermes-named path
+        # with no .jsonl suffix. Fallback: empty session (issue #29).
         pass
     finally:
         conn.close()

@@ -130,6 +130,25 @@ def test_undecodable_byte_does_not_abort_the_parse(tmp_path):
     assert [e.event_id for e in session.events] == ["t0", "t1"]
 
 
+def test_sqlite_without_messages_table_raises_not_empty_session(tmp_path):
+    # Issue #18: a SQLite DB without a messages table was silently swallowed,
+    # returning an empty Session that the CLI reported as "clean" with exit 0.
+    import sqlite3
+
+    from agentcallgraph.parsers.hermes import parse_hermes_session
+
+    db_path = tmp_path / "other.db"
+    conn = sqlite3.connect(str(db_path))
+    conn.execute("CREATE TABLE sessions(id INTEGER)")
+    conn.commit()
+    conn.close()
+
+    import pytest
+
+    with pytest.raises(ValueError, match="no 'messages' table"):
+        parse_hermes_session(db_path)
+
+
 def test_non_object_token_usage_is_ignored_not_fatal(tmp_path):
     # A scalar or list where a usage object is documented: the record is still a
     # valid event, and the budget detector must not raise on it.

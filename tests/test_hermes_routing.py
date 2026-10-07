@@ -108,15 +108,20 @@ def test_db_suffix_with_text_content_does_not_crash(tmp_path):
     assert session.events == []
 
 
-def test_sqlite_without_messages_table_still_degrades(tmp_path):
-    """The original purpose of the handler: a real DB with no messages table."""
+def test_sqlite_without_messages_table_raises_not_degrades(tmp_path):
+    """Issue #18: a real DB with no messages table must raise, not return empty.
+
+    The old behaviour returned an empty Session, which the CLI rendered as
+    "No findings — session looks clean" with exit 0 -- a false negative
+    presented as a positive result.
+    """
+    import pytest
+
     path = tmp_path / "hermes_empty.db"
     conn = sqlite3.connect(str(path))
     conn.execute("CREATE TABLE unrelated (id INTEGER)")
     conn.commit()
     conn.close()
 
-    session = parse_hermes_session(path)
-
-    assert session.source_format == "hermes_sqlite"
-    assert session.events == []
+    with pytest.raises(ValueError, match="no 'messages' table"):
+        parse_hermes_session(path)

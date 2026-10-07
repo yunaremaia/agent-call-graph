@@ -127,7 +127,12 @@ def _parse_session(path: str, source: str):
         if p.suffix in (".db", ".sqlite", ".sqlite3") or "hermes" in p.name.lower():
             try:
                 return parse_hermes_session(path)
-            except (ValueError, OSError):
+            except ValueError as e:
+                # A SQLite file without a messages table is NOT a generic JSONL
+                # file -- it is an unparseable session. Report the error instead
+                # of silently falling through to the generic parser (issue #18).
+                raise SystemExit(f"error: {e}") from e
+            except OSError:
                 pass
         return parse_generic_jsonl(path)
 
