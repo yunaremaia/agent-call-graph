@@ -23,7 +23,7 @@ def find_circular_calls(
     if loop_threshold < 2:
         raise ValueError("loop_threshold must be at least 2")
 
-    tool_calls = session.tool_calls[-loop_window:]
+    tool_calls = session.tool_calls
 
     path_map: dict[str, str] = {}
     # A call with no tool_name has no signature, and comparing None against None
